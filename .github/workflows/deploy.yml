@@ -2,15 +2,20 @@ name: Deploy para GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,7 +26,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm install
 
       - name: Build
@@ -32,22 +37,13 @@ jobs:
         with:
           path: ./dist
 
-      - name: Deploy para GitHub Pages
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy
+        id: deployment
         uses: actions/deploy-pages@v4
-```
-
----
-
-## Passo 3 — Ative o GitHub Pages
-
-1. No repositório, vá em **Settings → Pages**
-2. Em **Source**, selecione **GitHub Actions**
-3. Clique em **Save**
-
----
-
-## Passo 4 — Aguarde o deploy 🚀
-
-Vá em **Actions** no menu do repositório. Você verá o processo rodando. Em **2 a 3 minutos** o app estará no ar em:
-```
-https://SEU_USUARIO.github.io/palavras-que-fazem-sentido/
